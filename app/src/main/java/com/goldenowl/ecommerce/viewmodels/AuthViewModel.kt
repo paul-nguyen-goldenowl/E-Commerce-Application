@@ -17,6 +17,7 @@ import com.goldenowl.ecommerce.models.repo.LoginListener
 import com.goldenowl.ecommerce.utils.BaseLoadingStatus
 import com.goldenowl.ecommerce.utils.ImageHelper
 import com.goldenowl.ecommerce.utils.MyResult
+import com.goldenowl.ecommerce.utils.Utils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -27,7 +28,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val authRepository = (application as MyApplication).authRepository
     private val productsRepository = (application as MyApplication).productsRepository
     private val settingManager: SettingsManager = SettingsManager(application as MyApplication)
-
 
     fun logOut() {
         authRepository.logOut()
@@ -55,6 +55,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     var forgotPasswordStatus: MutableLiveData<BaseLoadingStatus> = MutableLiveData<BaseLoadingStatus>()
     var uploadAvatarStatus: MutableLiveData<BaseLoadingStatus> = MutableLiveData<BaseLoadingStatus>()
     var errorMessage: MutableLiveData<String?> = MutableLiveData<String?>()
+    var isNetworkAvailable =
+        MutableLiveData<Boolean>().apply { value = Utils.isNetworkAvailable(application.applicationContext) }
 
     init {
         signUpStatus.value = BaseLoadingStatus.NONE
@@ -171,27 +173,30 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         restoreStatus.value = BaseLoadingStatus.LOADING
 
         viewModelScope.launch {
-            val userId = firebaseAuth.currentUser?.uid
-            if (userId == null) {
+            if (firebaseAuth.currentUser == null) {
                 showToast(R.string.error_occurred)
                 return@launch
             }
-            val restoreData = async { productsRepository.restoreUserData(userId) }
-            val restoreSettings = async { authRepository.restoreUserSettingsData(userId) }
-            val restoreDataRes = restoreData.await()
-            val restoreSettingsRes = restoreSettings.await()
+            Log.d(TAG, "restoreUserData: not call if false")
+            firebaseAuth.currentUser?.let {
+                val userId = it.uid
+                val restoreData = async { productsRepository.restoreUserData(userId) }
+                val restoreSettings = async { authRepository.restoreUserSettingsData(userId) }
+                val restoreDataRes = restoreData.await()
+                val restoreSettingsRes = restoreSettings.await()
 
-            Log.d(TAG, "restoreDataRes: $restoreDataRes")
-            Log.d(TAG, "restoreSettingsRes: $restoreSettingsRes")
+                Log.d(TAG, "restoreDataRes: $restoreDataRes")
+                Log.d(TAG, "restoreSettingsRes: $restoreSettingsRes")
 
-            if (restoreDataRes is MyResult.Success && restoreSettingsRes is MyResult.Success) {
-                restoreStatus.value = BaseLoadingStatus.SUCCEEDED
-            } else if (restoreDataRes is MyResult.Error) {
-                restoreStatus.value = BaseLoadingStatus.FAILED
-                toastMessage.value = restoreDataRes.exception.message
-            }else if(restoreSettingsRes is MyResult.Error){
-                restoreStatus.value = BaseLoadingStatus.FAILED
-                toastMessage.value = restoreSettingsRes.exception.message
+                if (restoreDataRes is MyResult.Success && restoreSettingsRes is MyResult.Success) {
+                    restoreStatus.value = BaseLoadingStatus.SUCCEEDED
+                } else if (restoreDataRes is MyResult.Error) {
+                    restoreStatus.value = BaseLoadingStatus.FAILED
+                    toastMessage.value = restoreDataRes.exception.message
+                } else if (restoreSettingsRes is MyResult.Error) {
+                    restoreStatus.value = BaseLoadingStatus.FAILED
+                    toastMessage.value = restoreSettingsRes.exception.message
+                }
             }
         }
     }
@@ -202,6 +207,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             getApplication<Application>().applicationContext.resources.getString(resId),
             Toast.LENGTH_SHORT
         ).show()
+    }
+
+    fun setNetWorkAvailable(available: Boolean) {
+        isNetworkAvailable.value = available
     }
 
     companion object {

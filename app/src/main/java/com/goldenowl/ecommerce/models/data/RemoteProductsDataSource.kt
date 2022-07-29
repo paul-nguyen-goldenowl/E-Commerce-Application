@@ -36,10 +36,10 @@ class RemoteProductsDataSource : ProductDataSource {
     private val reviewRef = db.collection(REVIEW_COLLECTION)
     private val storageRef = Firebase.storage.reference
 
+    var source = Source.DEFAULT
+
     override suspend fun getAllProducts(): List<Product> {
         val listProducts = mutableListOf<Product>()
-        val source = Source.SERVER
-
         val documents = db.collection(PRODUCTS_COLLECTION).get(source).await()
         if (documents != null) {
             for (d in documents) {
@@ -60,7 +60,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw(java.lang.Exception("[Firestore] User not found!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get(Source.SERVER).await()
+        val snapshot = userOrderRef.get(source).await()
         if (!snapshot.exists()) {
             userOrderRef
                 .set(UserOrder(userId, listOf(favorite)))
@@ -83,7 +83,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw (Exception("[Firestore] User not logged in!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get(Source.SERVER).await()
+        val snapshot = userOrderRef.get(source).await()
         if (!snapshot.exists()) {
             userOrderRef
                 .set(UserOrder(userId, listOf(favorite)))
@@ -103,7 +103,7 @@ class RemoteProductsDataSource : ProductDataSource {
     }
 
     suspend fun emptyProductTable() {
-        val documents = db.collection(PRODUCTS_COLLECTION).get(Source.SERVER).await()
+        val documents = db.collection(PRODUCTS_COLLECTION).get(source).await()
         for (d in documents) {
             d.reference.delete()
         }
@@ -113,7 +113,7 @@ class RemoteProductsDataSource : ProductDataSource {
 
     suspend fun getFavoriteList(userId: String): List<Favorite> {
         return withContext(dispatcherIO) {
-            val userOrder = db.collection(USER_ORDER_COLLECTION).document(userId).get(Source.SERVER).await()
+            val userOrder = db.collection(USER_ORDER_COLLECTION).document(userId).get(source).await()
             if (userOrder.exists()) {
                 val orderObj = userOrder.toObject(UserOrder::class.java)
                 return@withContext orderObj?.favorites ?: emptyList()
@@ -126,7 +126,7 @@ class RemoteProductsDataSource : ProductDataSource {
         Log.d(RemoteAuthDataSource.TAG, "restoreDatabase restoring")
         return withContext(dispatcherIO) {
             try {
-                val userDataSnapshot = userOrderRef.document(userId).get(Source.SERVER).await()
+                val userDataSnapshot = userOrderRef.document(userId).get(source).await()
                 if (!userDataSnapshot.exists()) {
                     Log.d(RemoteAuthDataSource.TAG, "restoreDatabase: userorder ${userId} not exist")
                     return@withContext MyResult.Error(java.lang.Exception("UserOrder ${userId}  not exist"))
@@ -149,7 +149,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw(java.lang.Exception("[Firestore] User not found!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get(Source.SERVER).await()
+        val snapshot = userOrderRef.get(source).await()
         if (!snapshot.exists()) {
             userOrderRef
                 .set(UserOrder(userId, favorites = emptyList(), carts = listOf(cart)))
@@ -173,7 +173,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw(java.lang.Exception("[Firestore] User not found!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get(Source.SERVER).await()
+        val snapshot = userOrderRef.get(source).await()
         if (!snapshot.exists()) {
             userOrderRef
                 .set(UserOrder(userId, favorites = emptyList(), carts = listOf(cart)))
@@ -199,7 +199,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw (Exception("[Firestore] User not logged in!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get(Source.SERVER).await()
+        val snapshot = userOrderRef.get(source).await()
         if (!snapshot.exists()) {
             userOrderRef
                 .set(UserOrder(userId, emptyList(), listOf(cart)))
@@ -226,7 +226,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw (Exception("[Firestore] User not logged in!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get(Source.SERVER).await()
+        val snapshot = userOrderRef.get(source).await()
         if (snapshot.exists()) {
             userOrderRef
                 .update("carts", emptyList<Cart>())
@@ -237,7 +237,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw(java.lang.Exception("[Firestore] User not found!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get(Source.SERVER).await()
+        val snapshot = userOrderRef.get(source).await()
         if (!snapshot.exists()) {
             userOrderRef
                 .set(UserOrder(userId, orders = listOf(order)))
@@ -257,7 +257,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw (Exception("[Firestore] User not logged in!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get(Source.SERVER).await()
+        val snapshot = userOrderRef.get(source).await()
         if (!snapshot.exists()) {
             userOrderRef
                 .set(UserOrder(userId, orders = listOf(order)))
@@ -280,7 +280,7 @@ class RemoteProductsDataSource : ProductDataSource {
     suspend fun getListPromo(): MyResult<List<Promo>> {
         return try {
             val listPromos = mutableListOf<Promo>()
-            val documents = db.collection(PROMOTIONS_COLLECTION).get().await()
+            val documents = db.collection(PROMOTIONS_COLLECTION).get(source).await()
 
             for (d in documents) {
                 val promo = d.toObject<Promo>()
@@ -297,7 +297,7 @@ class RemoteProductsDataSource : ProductDataSource {
             val userId =
                 firebaseAuth.currentUser?.uid ?: throw(java.lang.Exception("[Firestore] User not found!"))
             var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-            val snapshot = userOrderRef.get(Source.SERVER).await()
+            val snapshot = userOrderRef.get(source).await()
             if (!snapshot.exists()) {
                 return MyResult.Success(emptyList())
             } else {
@@ -315,7 +315,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw(java.lang.Exception("[Firestore] User not found!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get(Source.SERVER).await()
+        val snapshot = userOrderRef.get(source).await()
         if (!snapshot.exists()) {
             userOrderRef
                 .set(UserOrder(userId, favorites = emptyList(), cards = listOf(card)))
@@ -336,7 +336,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw (Exception("[Firestore] User not logged in!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get(Source.SERVER).await()
+        val snapshot = userOrderRef.get(source).await()
         if (!snapshot.exists()) {
             userOrderRef
                 .set(UserOrder(userId, emptyList(), emptyList(), emptyList()))
@@ -357,7 +357,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw(java.lang.Exception("[Firestore] User not found!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get().await()
+        val snapshot = userOrderRef.get(source).await()
         if (!snapshot.exists()) {
             return emptyList()
         } else {
@@ -372,7 +372,7 @@ class RemoteProductsDataSource : ProductDataSource {
         firebaseAuth.currentUser?.uid ?: throw(java.lang.Exception("[Firestore] User not found!"))
 
         val listReviews = mutableListOf<Review>()
-        val documents = db.collection(PRODUCTS_COLLECTION).get().await()
+        val documents = db.collection(PRODUCTS_COLLECTION).get(source).await()
         if (documents != null) {
             for (d in documents) {
                 val review = d.toObject<Review>()
@@ -393,7 +393,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw(java.lang.Exception("[Firestore] User not found!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get(Source.SERVER).await()
+        val snapshot = userOrderRef.get(source).await()
         val userOrder = snapshot.toObject(UserOrder::class.java)
         return userOrder?.defaultCheckout ?: mapOf()
 
@@ -404,7 +404,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw(java.lang.Exception("[Firestore] User not found!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get(Source.SERVER).await()
+        val snapshot = userOrderRef.get(source).await()
         if (!snapshot.exists()) {
             userOrderRef
                 .set(UserOrder(userId, favorites = emptyList(), addresss = listOf(address)))
@@ -425,7 +425,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw (Exception("[Firestore] User not logged in!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get(Source.SERVER).await()
+        val snapshot = userOrderRef.get(source).await()
         if (!snapshot.exists()) {
             userOrderRef
                 .set(UserOrder(userId, emptyList(), emptyList(), emptyList()))
@@ -447,7 +447,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw(java.lang.Exception("[Firestore] User not found!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get(Source.SERVER).await()
+        val snapshot = userOrderRef.get(source).await()
         if (!snapshot.exists()) {
             userOrderRef
                 .set(UserOrder(userId, favorites = emptyList(), addresss = listOf(address)))
@@ -497,7 +497,7 @@ class RemoteProductsDataSource : ProductDataSource {
             firebaseAuth.currentUser?.uid ?: throw(java.lang.Exception("[Firestore] User not found!"))
 
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get(Source.SERVER).await()
+        val snapshot = userOrderRef.get(source).await()
 
         val userOrder = snapshot.toObject(UserOrder::class.java)
 
@@ -515,7 +515,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val documents = reviewRef
             .whereEqualTo("productId", productId)
             .orderBy("date", Query.Direction.DESCENDING)
-            .get().await()
+            .get(source).await()
         if (documents != null) {
             for (d in documents) {
                 val review = d.toObject<Review>()
@@ -531,29 +531,43 @@ class RemoteProductsDataSource : ProductDataSource {
         val userId =
             firebaseAuth.currentUser?.uid ?: throw(java.lang.Exception("[Firestore] User not found!"))
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get().await()
+        val snapshot = userOrderRef.get(source).await()
 
         val userOrder = snapshot.toObject(UserOrder::class.java) ?: return emptyList()
         return userOrder.usefulReviews
     }
 
-
+    var productRef: Query? = null
     suspend fun loadFirstPage(
         category: String?
     ): MutableList<Product> {
         val listProducts = mutableListOf<Product>()
+        lastVisible = null
+        Log.d(TAG, "loadFirstPage: category=$category")
+        productRef =
+            when (category) {
+                Constants.KEY_SALE -> {
+                    db.collection(PRODUCTS_COLLECTION).whereNotEqualTo("salePercent", null)
+                        .orderBy("salePercent", Query.Direction.DESCENDING)
+                }
+                Constants.KEY_NEW -> {
+                    db.collection(PRODUCTS_COLLECTION)
+                        .orderBy("createdDate", Query.Direction.DESCENDING)
+                }
+                "" -> db.collection(PRODUCTS_COLLECTION).orderBy("id")
+                null -> db.collection(PRODUCTS_COLLECTION).orderBy("id")
+                else -> {
+                    db.collection(PRODUCTS_COLLECTION).whereEqualTo("categoryName", category).orderBy("id")
+                }
+            }
 
-        val productRef = if (category.isNullOrBlank())
-            db.collection(PRODUCTS_COLLECTION)
-        else db.collection(PRODUCTS_COLLECTION).whereEqualTo("categoryName", category)
-
-        val querySnapshot = productRef
-            .orderBy("id")
+        val querySnapshot = productRef!!
             .limit(Constants.LOAD_MORE_QUANTITY)
-            .get()
+            .get(source)
             .await()
 
-        lastVisible = querySnapshot.documents[querySnapshot.size() - 1]
+        if (querySnapshot.size() > 0)
+            lastVisible = querySnapshot.documents[querySnapshot.size() - 1]
 
         if (querySnapshot != null) {
             for (d in querySnapshot) {
@@ -569,20 +583,15 @@ class RemoteProductsDataSource : ProductDataSource {
     ): MutableList<Product> {
         val listProducts = mutableListOf<Product>()
 
-        val productRef = if (category.isNullOrBlank())
-            db.collection(PRODUCTS_COLLECTION)
-        else db.collection(PRODUCTS_COLLECTION).whereEqualTo("categoryName", category)
+        if (productRef == null) return mutableListOf()
 
         var query = if (lastVisible == null)
-            productRef
-                .orderBy("id")
+            productRef!!
         else
-            productRef
-                .orderBy("id")
-                .startAfter(lastVisible!!)
+            productRef!!.startAfter(lastVisible!!)
         val querySnapshot = query
             .limit(Constants.LOAD_MORE_QUANTITY)
-            .get()
+            .get(source)
             .await()
 
         if (querySnapshot.size() > 0)
@@ -602,7 +611,7 @@ class RemoteProductsDataSource : ProductDataSource {
         val listReviews = mutableListOf<Review>()
         val documents = reviewRef
             .whereEqualTo("userId", uid)
-            .get().await()
+            .get(source).await()
         if (documents != null) {
             for (d in documents) {
                 val review = d.toObject<Review>()
@@ -616,14 +625,14 @@ class RemoteProductsDataSource : ProductDataSource {
 
     suspend fun getAllFavorite(userId: String): List<Favorite> {
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get().await()
+        val snapshot = userOrderRef.get(source).await()
         val userOrder = snapshot.toObject(UserOrder::class.java)
         return userOrder?.favorites ?: emptyList()
     }
 
     suspend fun getAllCart(userId: String): List<Cart> {
         var userOrderRef = db.collection(USER_ORDER_COLLECTION).document(userId)
-        val snapshot = userOrderRef.get().await()
+        val snapshot = userOrderRef.get(source).await()
         val userOrder = snapshot.toObject(UserOrder::class.java)
         return userOrder?.carts ?: emptyList()
     }

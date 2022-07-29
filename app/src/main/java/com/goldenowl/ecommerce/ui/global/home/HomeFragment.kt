@@ -2,6 +2,7 @@ package com.goldenowl.ecommerce.ui.global.home
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.View
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.findNavController
@@ -42,6 +43,7 @@ class HomeFragment : BaseHomeFragment<FragmentHomeBinding>() {
 
             viewModel.listProductData.observe(viewLifecycleOwner) {
                 listProductData = it
+                Log.d(TAG, "setObservers: 123456 $it")
                 salesListAdapter.setData(listProductData, Constants.KEY_SALE)
                 newsListAdapter.setData(listProductData, Constants.KEY_NEW)
             }

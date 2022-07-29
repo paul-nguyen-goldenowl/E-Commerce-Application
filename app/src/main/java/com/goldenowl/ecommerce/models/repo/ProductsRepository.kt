@@ -21,7 +21,7 @@ class ProductsRepository(
     suspend fun getAllProducts(): List<Product> {
         return if (networkAvailable) {
             val products = remoteProductDataSource.getAllProducts()
-            localProductDataSource.insertMultipleProduct(products)
+//            localProductDataSource.insertMultipleProduct(products)
             products
         } else {
             localProductDataSource.getAllProducts()

@@ -8,12 +8,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import androidx.viewbinding.ViewBinding
 import com.facebook.CallbackManager
 import com.facebook.login.LoginManager
+import com.goldenowl.ecommerce.R
 import com.goldenowl.ecommerce.models.auth.UserManager
 import com.goldenowl.ecommerce.models.repo.LoginListener
 import com.goldenowl.ecommerce.utils.BaseLoadingStatus
+import com.goldenowl.ecommerce.utils.ConnectionLiveData
 import com.goldenowl.ecommerce.utils.MyResult
 import com.goldenowl.ecommerce.utils.Utils
 import com.goldenowl.ecommerce.viewmodels.AuthViewModel
@@ -28,6 +31,7 @@ abstract class BaseAuthFragment<VBiding : ViewBinding> : Fragment() {
 
     val textInputViewModel: TextInputViewModel by activityViewModels()
     val viewModel: AuthViewModel by activityViewModels()
+    protected lateinit var connectionLiveData: ConnectionLiveData
 
     val facebookCallbackManager = CallbackManager.Factory.create() //facebook callback
 
@@ -36,7 +40,7 @@ abstract class BaseAuthFragment<VBiding : ViewBinding> : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
+        connectionLiveData = ConnectionLiveData(requireContext())
         userManager = UserManager.getInstance(requireContext())
         binding = getViewBinding()
 
@@ -49,9 +53,19 @@ abstract class BaseAuthFragment<VBiding : ViewBinding> : Fragment() {
         return binding.root
     }
 
+    open fun setObservers() {
+        connectionLiveData.observe(viewLifecycleOwner) {
+            viewModel.setNetWorkAvailable(it)
+        }
+        viewModel.isNetworkAvailable.observe(viewLifecycleOwner) {
+            if (!it) {
+                findNavController().navigate(R.id.no_internet_dest)
+            }
+        }
+    }
+
     abstract fun getViewBinding(): VBiding
     abstract fun setAppBar()
-    abstract fun setObservers()
     abstract fun setupListeners()
     abstract fun setViews()
 
@@ -95,6 +109,7 @@ abstract class BaseAuthFragment<VBiding : ViewBinding> : Fragment() {
             }
         }
     }
+
     protected fun loginWithFacebook() {
         LoginManager.getInstance()
             .logInWithReadPermissions(this, listOf("public_profile", "email"))

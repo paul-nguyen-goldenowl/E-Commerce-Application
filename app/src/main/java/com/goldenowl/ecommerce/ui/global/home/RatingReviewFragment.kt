@@ -64,7 +64,7 @@ class RatingReviewFragment : BaseHomeFragment<FragmentRatingReviewBinding>() {
             if (viewModel.isLoggedIn())
                 toggleBottomSheetWriteReview()
             else
-                showToast(getString(R.string.log_in_to_review))
+                toggleDialogLogIn()
         }
         binding.checkWithPhoto.setOnClickListener {
             it.isSelected = !it.isSelected

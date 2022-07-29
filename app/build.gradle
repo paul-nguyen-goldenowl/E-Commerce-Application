@@ -130,4 +130,7 @@ dependencies {
     // Crashlytics and Analytics libraries
     implementation 'com.google.firebase:firebase-crashlytics-ktx'
     implementation 'com.google.firebase:firebase-analytics-ktx'
+
+    // animation
+    implementation 'com.airbnb.android:lottie:5.2.0'
 }
