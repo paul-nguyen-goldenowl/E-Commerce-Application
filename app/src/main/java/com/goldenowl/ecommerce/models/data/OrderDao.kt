@@ -19,4 +19,7 @@ interface OrderDao {
 
     @Query("Delete from order_table")
     suspend fun deleteTable()
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMultipleOrder(listOrder: List<Order>)
 }

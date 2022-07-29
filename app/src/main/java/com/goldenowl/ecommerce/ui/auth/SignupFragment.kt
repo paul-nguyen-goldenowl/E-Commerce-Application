@@ -18,7 +18,7 @@ class SignupFragment : BaseAuthFragment<FragmentSignupBinding>() {
     }
 
     override fun setObservers() {
-
+        super.setObservers()
         textInputViewModel.errorSignUpEmail.observe(viewLifecycleOwner) { errorEmail ->
             validEmail(errorEmail)
         }

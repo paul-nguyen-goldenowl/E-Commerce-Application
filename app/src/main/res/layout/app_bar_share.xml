@@ -6,22 +6,24 @@
     android:id="@+id/app_bar_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
-    android:elevation="4dp"
-    android:fitsSystemWindows="true"
+    android:background="@color/background_color"
     android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
+    app:elevation="0dp"
     app:liftOnScroll="true">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:theme="@style/ThemeOverlay.MaterialComponents.Light"
-        app:contentInsetEnd="@dimen/icon_width"
-        app:contentInsetStartWithNavigation="0dp"
-        app:layout_collapseMode="pin"
-        app:menu="@menu/menu_share"
-        app:navigationIcon="@drawable/ic_back"
-        app:titleCentered="true"
-        tools:title="@string/shop" />
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:elevation="0dp"
+            android:theme="@style/ThemeOverlay.MaterialComponents.Light"
+            app:contentInsetEnd="@dimen/icon_width"
+            app:contentInsetStartWithNavigation="0dp"
+            app:layout_collapseMode="pin"
+            app:menu="@menu/menu_share"
+            app:navigationIcon="@drawable/ic_back"
+            app:titleCentered="true"
+            tools:title="@string/shop" />
+
 </com.google.android.material.appbar.AppBarLayout>

@@ -21,12 +21,15 @@ import com.goldenowl.ecommerce.models.auth.UserManager.Companion.TYPEEMAIL
 import com.goldenowl.ecommerce.models.data.SettingsManager
 import com.goldenowl.ecommerce.ui.global.BaseFragment
 import com.goldenowl.ecommerce.utils.BaseLoadingStatus
+import com.goldenowl.ecommerce.utils.Constants
 import com.goldenowl.ecommerce.utils.FieldValidators
+import com.goldenowl.ecommerce.utils.SimpleDateFormatHelper
 import com.goldenowl.ecommerce.utils.Utils.getDateTime
 import com.goldenowl.ecommerce.viewmodels.AuthViewModel
 import com.goldenowl.ecommerce.viewmodels.TextInputViewModel
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.textfield.TextInputLayout
+import java.util.*
 
 class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
     val TAG = "SettingsFragment"
@@ -76,15 +79,6 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
             if (userManager.logType == TYPEEMAIL) View.VISIBLE else View.GONE
         val settingsManager = SettingsManager(requireContext())
 
-        val datePicker =
-            MaterialDatePicker.Builder.datePicker()
-                .setTitleText("Select date")
-                .build()
-
-        datePicker.addOnPositiveButtonClickListener { time ->
-            val date = getDateTime(time)
-            binding.edtDob.setText(date)
-        }
 
         restoreViews(settingsManager)
 
@@ -109,7 +103,28 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
             }
 
             edtDob.setOnClickListener {
-                datePicker.show(parentFragmentManager, "tag");
+                try {
+                    if (childFragmentManager.findFragmentByTag("date_picker") != null) {
+                        return@setOnClickListener
+                    }
+                    val datePicker =
+                        MaterialDatePicker.Builder.datePicker()
+                            .setTitleText("Select date")
+                            .build()
+
+                    datePicker.addOnPositiveButtonClickListener { time ->
+                        val diff = SimpleDateFormatHelper.countDate(Date(time), Date())
+                        if (diff < Constants.MIN_AGE) {
+                            textInputViewModel.errorDoB.value = getString(R.string.invalid_age)
+                            return@addOnPositiveButtonClickListener
+                        }
+                        val date = getDateTime(time)
+                        binding.edtDob.setText(date)
+                    }
+                    datePicker.show(childFragmentManager, "date_picker");
+                } catch (e: Exception) {
+                    Log.e(TAG, "setViews: datePicker", e)
+                }
             }
         }
     }

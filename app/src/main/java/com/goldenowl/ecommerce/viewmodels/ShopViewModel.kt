@@ -26,13 +26,16 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     var mListProduct: List<Product> = ArrayList()
 
     var categoryList: Set<String> = setOf()
+    var listAppbarImg: MutableLiveData<List<Pair<String, String>>> =
+        MutableLiveData<List<Pair<String, String>>>().apply { value = emptyList() }
 
     var listProductData: MutableLiveData<List<ProductData>> = MutableLiveData<List<ProductData>>()
     var listCartData: MutableLiveData<List<CartData>> = MutableLiveData<List<CartData>>()
     var listReviewData: MutableLiveData<MutableList<ReviewData>> = MutableLiveData<MutableList<ReviewData>>()
     var listPromo: MutableLiveData<List<Promo>> = MutableLiveData<List<Promo>>().apply { value = emptyList() }
     var listCard: MutableLiveData<List<Card>> = MutableLiveData<List<Card>>().apply { value = emptyList() }
-    var listAddress: MutableLiveData<List<Address>> = MutableLiveData<List<Address>>().apply { value = emptyList() }
+    var listAddress: MutableLiveData<List<Address>> =
+        MutableLiveData<List<Address>>().apply { value = emptyList() }
     var mListReview = MutableLiveData<List<Review>>().apply { value = emptyList() }
 
     var curBag: MutableLiveData<Bag> = MutableLiveData<Bag>()
@@ -41,31 +44,23 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     var defaultAddressIndex: MutableLiveData<Int?> = MutableLiveData<Int?>()
     var deliveryMethod: MutableLiveData<Delivery?> = MutableLiveData<Delivery?>()
 
-    val toastMessage: MutableLiveData<String?> = MutableLiveData<String?>()
-
     val dataReady: MutableLiveData<BaseLoadingStatus> = MutableLiveData<BaseLoadingStatus>().apply {
         value = BaseLoadingStatus.LOADING
     }
 
     val allFavorite = productsRepository.allFavorite.asLiveData()
     val allCart = productsRepository.allCart.asLiveData()
-
-    //    val allAddress = productsRepository.allAddress.asLiveData()
     val allOrder = productsRepository.allOrder.asLiveData()
 
-    var addAddressStatus: MutableLiveData<BaseLoadingStatus> = MutableLiveData<BaseLoadingStatus>().apply {
-        value = BaseLoadingStatus.NONE
-    }
     var loadingStatus: MutableLiveData<BaseLoadingStatus> = MutableLiveData<BaseLoadingStatus>().apply {
         value = BaseLoadingStatus.NONE
     }
 
-    private var isNetworkAvailable = false
+    private var isNetworkAvailable = Utils.isNetworkAvailable(application.applicationContext)
 
     private val rsaCipher = RSACipher((application as MyApplication).applicationContext)
 
     init {
-        isNetworkAvailable = Utils.isNetworkAvailable(application.applicationContext)
         productsRepository.setNetworkAvailable(isNetworkAvailable)
         settingsManager.setLastNetwork(isNetworkAvailable)
 
@@ -73,7 +68,6 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
             if (!settingsManager.getLastNetwork() && isNetworkAvailable) {
             }
             fetchData()
-            getListPromo()
             dataReady.value = BaseLoadingStatus.SUCCEEDED
         }
 
@@ -116,15 +110,39 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private suspend fun fetchData() {
-        mListProduct = productsRepository.getAllProducts()
+
+        mListProduct = withContext(Dispatchers.Default) { productsRepository.getAllProducts() }
+        Log.d(TAG, "fetchData: getAllProducts $mListProduct")
+        val resPromo = withContext(Dispatchers.Default) { productsRepository.getListPromo() }
+        Log.d(TAG, "fetchData: getListPromo $resPromo")
+        if (resPromo is MyResult.Error) {
+            showToast(resPromo.exception.message)
+        } else if (resPromo is MyResult.Success) {
+            listPromo.value = resPromo.data
+        }
+
+        val appbarRes = withContext(Dispatchers.Default) {productsRepository.getListAppbarImg()}
+        Log.d(TAG, "fetchData: appbarRes: $appbarRes")
+
+        if (appbarRes is MyResult.Success) {
+            listAppbarImg.value = appbarRes.data
+        }
+
         setCategoryList(mListProduct)
 
         if (authRepository.isUserLoggedIn()) {
+            Log.d(TAG, "fetchData: logged in")
             val id = authRepository.getUserId()
-            val resMyReview = productsRepository.getMyListReview(id)
-            val resCard = productsRepository.getListCard()
-            val resAddress = productsRepository.getListAddress()
-            val defaultCheckOut = productsRepository.getDefaultCheckOut()
+
+            val resMyReview = withContext(Dispatchers.Default) {
+                productsRepository.getMyListReview(id)
+            }
+            val resCard =
+                withContext(Dispatchers.Default) { productsRepository.getListCard() }
+            val resAddress =
+                withContext(Dispatchers.Default) { productsRepository.getListAddress() }
+            val defaultCheckOut =
+                withContext(Dispatchers.Default) { productsRepository.getDefaultCheckOut() }
 
             Log.d(TAG, "resCard: $resCard")
             Log.d(TAG, "resAddress: $resAddress")
@@ -158,19 +176,9 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
             } else if (defaultCheckOut is MyResult.Error) {
                 showToast(defaultCheckOut.exception.message)
             }
-
-
         }
-    }
 
-    private suspend fun getListPromo() {
-        val res = productsRepository.getListPromo()
-        Log.d(TAG, "getListPromo: $res")
-        if (res is MyResult.Error) {
-            showToast(res.exception.message)
-        } else if (res is MyResult.Success) {
-            listPromo.value = res.data
-        }
+
     }
 
     fun insertFavorite(favorite: Favorite) {
@@ -356,14 +364,17 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun insertAddress(address: Address) {
-        addAddressStatus.value = BaseLoadingStatus.LOADING
+        loadingStatus.value = BaseLoadingStatus.LOADING
         viewModelScope.launch(Dispatchers.IO) {
             productsRepository.insertAddress(address).let {
                 Log.d(TAG, "insertAddress: result= $it")
                 if (it is MyResult.Success) {
-                    addAddressStatus.postValue(BaseLoadingStatus.SUCCEEDED)
+                    val list = listAddress.value?.toMutableList() ?: mutableListOf()
+                    list.add(address)
+                    listAddress.postValue(list)
+                    loadingStatus.postValue(BaseLoadingStatus.SUCCEEDED)
                 } else if (it is MyResult.Error) {
-                    addAddressStatus.value = BaseLoadingStatus.FAILED
+                    loadingStatus.value = BaseLoadingStatus.FAILED
                     showToast(it.exception.message)
                 }
             }
@@ -371,21 +382,24 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun removeAddress(position: Int) {
-        addAddressStatus.value = BaseLoadingStatus.LOADING
+        loadingStatus.value = BaseLoadingStatus.LOADING
         if (position == defaultAddressIndex.value) {
             setDefaultAddress(0)
         }
-//        val address = this.allAddress.value?.get(position)
         val address = this.listAddress.value?.get(position)
         viewModelScope.launch(Dispatchers.IO) {
             if (address != null) {
                 productsRepository.removeAddress(position, address).let {
                     Log.d(TAG, "removeAddress: result= $it")
                     if (it is MyResult.Success) {
-                        addAddressStatus.value = BaseLoadingStatus.SUCCEEDED
+                        val list = listAddress.value?.toMutableList()
+                        list?.remove(address)
+                        listAddress.postValue(list)
+
+                        loadingStatus.postValue(BaseLoadingStatus.SUCCEEDED)
                     } else if (it is MyResult.Error) {
                         showToast(it.exception.message)
-                        addAddressStatus.value = BaseLoadingStatus.FAILED
+                        loadingStatus.postValue(BaseLoadingStatus.FAILED)
                     }
                 }
             }
@@ -393,15 +407,18 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun updateAddress(address: Address, position: Int) {
-        addAddressStatus.value = BaseLoadingStatus.LOADING
+        loadingStatus.value = BaseLoadingStatus.LOADING
         viewModelScope.launch(Dispatchers.IO) {
             productsRepository.updateAddress(address, position).let {
                 Log.d(TAG, "updateAddress: result= $it")
                 if (it is MyResult.Success) {
-                    addAddressStatus.postValue(BaseLoadingStatus.SUCCEEDED)
+                    val list = listAddress.value?.toMutableList()
+                    list?.set(position, address)
+                    listAddress.postValue(list)
+                    loadingStatus.postValue(BaseLoadingStatus.SUCCEEDED)
                 } else if (it is MyResult.Error) {
                     showToast(it.exception.message)
-                    addAddressStatus.value = BaseLoadingStatus.FAILED
+                    loadingStatus.postValue(BaseLoadingStatus.FAILED)
                 }
             }
         }
@@ -546,6 +563,11 @@ class ShopViewModel(application: Application) : AndroidViewModel(application) {
                 showToast(res.exception.message)
             }
         }
+    }
+
+    fun setNetWorkAvailable(network: Boolean) {
+        isNetworkAvailable = network
+        productsRepository.setNetWorkAvailable(network)
     }
 
     companion object {

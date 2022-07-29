@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import com.facebook.*
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
+import com.goldenowl.ecommerce.NotLoggedInException
 import com.goldenowl.ecommerce.R
 import com.goldenowl.ecommerce.models.auth.UserManager
 import com.goldenowl.ecommerce.models.auth.UserManager.Companion.TYPEFACEBOOK
@@ -106,23 +107,29 @@ class RemoteAuthDataSource(private val userManager: UserManager, val context: Co
             }
             if (data == null)
                 return
-            val googleAccount = GoogleSignIn.getSignedInAccountFromIntent(data).result
-            googleAccount?.let {
-                if (it.email == null || it.idToken == null) {
-                    listener.callback(MyResult.Error(java.lang.Exception("User not found")))
-                } else {
-                    val firebaseCredential = GoogleAuthProvider.getCredential(it.idToken, null)
-                    firebaseAuth.signInWithCredential(firebaseCredential)
-                        .addOnCompleteListener {
-                            currentUser = firebaseAuth.currentUser
-                            listener.callback(MyResult.Success(true))
-                            onLoginSuccess(currentUser, UserManager.TYPEGOOGLE)
+            try {
 
-                        }
-                        .addOnFailureListener { e ->
-                            listener.callback(MyResult.Error(e))
-                        }
+                val googleAccount = GoogleSignIn.getSignedInAccountFromIntent(data).result
+                googleAccount?.let {
+                    if (it.email == null || it.idToken == null) {
+                        listener.callback(MyResult.Error(NotLoggedInException("User not found")))
+                    } else {
+                        val firebaseCredential = GoogleAuthProvider.getCredential(it.idToken, null)
+                        firebaseAuth.signInWithCredential(firebaseCredential)
+                            .addOnCompleteListener {
+                                currentUser = firebaseAuth.currentUser
+                                listener.callback(MyResult.Success(true))
+                                onLoginSuccess(currentUser, UserManager.TYPEGOOGLE)
+
+                            }
+                            .addOnFailureListener { e ->
+                                listener.callback(MyResult.Error(e))
+                            }
+                    }
                 }
+            } catch (e: Exception) {
+                listener.callback(MyResult.Error(e))
+                Log.e(TAG, "loginwithGoogle: ", e)
             }
         }
     }

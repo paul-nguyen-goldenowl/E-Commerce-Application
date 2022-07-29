@@ -27,7 +27,7 @@
         android:id="@+id/forgot_dest"
         android:name="com.goldenowl.ecommerce.ui.auth.ForgotPasswordFragment"
         android:label="@string/forgot_password"
-        tools:layout="@layout/fragment_forgot_password" />
+        tools:layout="@layout/fragment_forgot_password"/>
     <fragment
         android:id="@+id/signup_dest"
         android:name="com.goldenowl.ecommerce.ui.auth.SignupFragment"
@@ -42,4 +42,9 @@
             app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
+    <fragment
+        android:id="@+id/no_internet_dest"
+        android:name="com.goldenowl.ecommerce.ui.auth.NoInternetFragment"
+        android:label="@string/no_internet"
+        tools:layout="@layout/fragment_no_internet"></fragment>
 </navigation>

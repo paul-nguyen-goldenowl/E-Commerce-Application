@@ -1,10 +1,10 @@
 package com.goldenowl.ecommerce.ui.global.home
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
-import android.view.MenuItem
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
-import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,6 +20,7 @@ import com.goldenowl.ecommerce.ui.global.BaseHomeFragment
 import com.goldenowl.ecommerce.utils.Constants
 import com.goldenowl.ecommerce.utils.Constants.listSize
 import com.goldenowl.ecommerce.utils.Utils.autoScroll
+import com.goldenowl.ecommerce.utils.Utils.prepareForTwoWayPaging
 
 
 class ProductDetailFragment : BaseHomeFragment<FragmentProductDetailBinding>() {
@@ -30,6 +31,7 @@ class ProductDetailFragment : BaseHomeFragment<FragmentProductDetailBinding>() {
 
     private var favorite: Favorite? = null
     private var relateList: List<ProductData> = emptyList()
+    private val handler = Handler(Looper.getMainLooper())
 
     private var listProductData: List<ProductData> = emptyList()
 
@@ -51,10 +53,6 @@ class ProductDetailFragment : BaseHomeFragment<FragmentProductDetailBinding>() {
 
         viewModel.allFavorite.observe(viewLifecycleOwner) {
             viewModel.reloadListProductData()
-        }
-
-        viewModel.toastMessage.observe(viewLifecycleOwner) {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
         }
 
     }
@@ -107,8 +105,8 @@ class ProductDetailFragment : BaseHomeFragment<FragmentProductDetailBinding>() {
         }
 
         /* viewpager*/
-        binding.viewPager.adapter = ImageProductDetailAdapter(product.images)
-        binding.viewPager.autoScroll(3500)
+        binding.viewPager.adapter = ImageProductDetailAdapter(product.images.prepareForTwoWayPaging())
+        binding.viewPager.autoScroll(handler, Constants.AUTO_SCROLL)
         /* recyclerView*/
         relateProductAdapter = HomeProductListAdapter(this)
         val relateProducts = getRelateProducts()
@@ -120,11 +118,16 @@ class ProductDetailFragment : BaseHomeFragment<FragmentProductDetailBinding>() {
             resources.getQuantityString(R.plurals.num_item, relateProducts.size, relateProducts.size)
 
         binding.btnAddToCart.setOnClickListener {
+            if (!viewModel.isLoggedIn()) {
+                toggleDialogLogIn()
+                return@setOnClickListener
+            }
             val size = binding.menuSize.editText?.text.toString()
             val color = binding.menuColor.editText?.text.toString()
             if (color.isNullOrBlank()) {
                 showToast(getString(R.string.please_select_color))
                 binding.menuColor.requestFocus()
+                (binding.menuColor.editText as? AutoCompleteTextView)?.showDropDown()
             } else {
                 toggleBottomSheetInsertCart(
                     product, Cart(product.id, size, color, 1)
@@ -149,28 +152,13 @@ class ProductDetailFragment : BaseHomeFragment<FragmentProductDetailBinding>() {
                 findNavController().navigateUp()
             }
             setOnMenuItemClickListener {
-                Log.d(TAG, "setAppbar: ${it.itemId == R.drawable.ic_share} ")
                 false
             }
-            title = product.categoryName
         }
+        Log.d(TAG, "product.categoryName: ${product.categoryName}")
+        binding.topAppBar.toolbar.title = product.categoryName
     }
 
-
-    private fun onMenuClick(menuItem: MenuItem?): Boolean {
-        Log.d(TAG, "onMenuClick: ${menuItem?.itemId}")
-        when (menuItem?.itemId) {
-            R.id.ic_search -> {
-                Log.d(TAG, "onMenuClick: search clicked")
-                // todo
-//                binding.topAppBar.searchBar.searchBarFrameLayout.apply {
-//                    visibility = if (visibility == View.VISIBLE) View.INVISIBLE else View.INVISIBLE
-//                }
-                return false
-            }
-        }
-        return false
-    }
 
     private fun getListCategory(): List<String> {
         return viewModel.categoryList.toList()
@@ -183,6 +171,16 @@ class ProductDetailFragment : BaseHomeFragment<FragmentProductDetailBinding>() {
 
     override fun getViewBinding(): FragmentProductDetailBinding {
         return FragmentProductDetailBinding.inflate(layoutInflater)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        handler.removeMessages(0)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeMessages(0)
     }
 }
 

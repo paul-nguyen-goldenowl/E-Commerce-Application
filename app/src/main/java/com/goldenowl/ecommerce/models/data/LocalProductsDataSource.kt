@@ -87,6 +87,10 @@ class LocalProductsDataSource(
         cartDao.insertMultipleCart(listCart)
     }
 
+    suspend fun insertMultipleOrder(listOrder: List<Order>) {
+        orderDao.insertMultipleOrder(listOrder)
+    }
+
     suspend fun insertMultipleFavorite(allFavorite: List<Favorite>) {
         favoriteDao.insertMultipleFavorite(allFavorite)
     }

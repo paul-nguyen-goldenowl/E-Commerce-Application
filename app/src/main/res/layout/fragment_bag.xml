@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    android:background="@color/background_color">
+    android:background="@color/background_color"
+    android:fitsSystemWindows="true">
 
     <include
         android:id="@+id/top_app_bar"
@@ -39,78 +39,94 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="50dp" />
-
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:id="@+id/layout_promo"
-                    android:layout_width="match_parent"
-                    android:layout_height="36dp"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="22dp"
-                    android:layout_marginEnd="16dp">
-
-                    <TextView
-                        android:id="@+id/tv_promo_code"
-                        android:layout_width="match_parent"
-                        android:layout_height="36dp"
-                        android:layout_marginEnd="16dp"
-                        android:background="@drawable/bg_rounded_button_white"
-                        android:gravity="center_vertical"
-                        android:hint="@string/enter_promo"
-                        android:paddingStart="16dp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <ImageView
-                        android:id="@+id/iv_enter_promo"
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:layout_marginEnd="2dp"
-                        android:src="@drawable/ic_enter"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/tv_no_product"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="28dp"
-                    android:layout_marginEnd="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentStart="true"
-                        android:layout_centerVertical="true"
-                        android:layout_toLeftOf="@+id/tv_total"
-                        android:text="@string/total_amount"
-                        android:textAppearance="@style/TextAppearance.MyApp.Text14" />
-
-                    <TextView
-                        android:id="@+id/tv_total"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:text="0$"
-                        android:textAppearance="@style/TextAppearance.MyApp.Text18.Black" />
-
-                </RelativeLayout>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_check_out"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="24dp"
-                    android:layout_marginEnd="16dp"
-                    android:backgroundTint="@color/red_dark"
-                    android:text="@string/checkout"
-                    android:textColor="@color/white"
-                    app:shapeAppearanceOverlay="@style/RoundedButtonShape" />
+                    android:layout_gravity="center"
+                    android:layout_marginTop="32dp"
+                    android:text="@string/no_cart_product"
+                    android:visibility="gone" />
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:id="@+id/layout_checkout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layout_promo"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="22dp"
+            android:layout_marginEnd="16dp">
+
+            <TextView
+                android:id="@+id/tv_promo_code"
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/bg_rounded_button_white"
+                android:gravity="center_vertical"
+                android:hint="@string/enter_promo"
+                android:paddingStart="16dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/iv_enter_promo"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="2dp"
+                android:src="@drawable/ic_enter"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="28dp"
+            android:layout_marginEnd="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_toLeftOf="@+id/tv_total"
+                android:text="@string/total_amount"
+                android:textAppearance="@style/TextAppearance.MyApp.Text14" />
+
+            <TextView
+                android:id="@+id/tv_total"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:text="0$"
+                android:textAppearance="@style/TextAppearance.MyApp.Text18.Black" />
+
+        </RelativeLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_check_out"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="16dp"
+            android:backgroundTint="@color/red_dark"
+            android:text="@string/checkout"
+            android:textColor="@color/white"
+            app:shapeAppearanceOverlay="@style/RoundedButtonShape" />
+    </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

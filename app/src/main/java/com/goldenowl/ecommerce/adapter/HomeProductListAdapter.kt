@@ -1,5 +1,6 @@
 package com.goldenowl.ecommerce.adapter
 
+import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -117,6 +118,7 @@ class HomeProductListAdapter(private val listener: IClickListener) :
                 holder.discountPrice?.visibility = View.INVISIBLE
                 holder.originPrice?.text =
                     holder.itemView.context.resources.getString(R.string.money_unit_int, product.getOriginPrice())
+                holder.originPrice?.paintFlags = Paint.ANTI_ALIAS_FLAG
             }
         }
 

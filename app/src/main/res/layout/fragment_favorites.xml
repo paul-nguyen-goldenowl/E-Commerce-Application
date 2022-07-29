@@ -3,12 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    android:background="@color/background_color">
+    android:background="@color/background_color"
+    android:fitsSystemWindows="true">
 
     <include
         android:id="@+id/top_app_bar"
-        layout="@layout/app_bar_favorite_grey" />
+        layout="@layout/app_bar_bag" />
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -31,13 +31,24 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rcv_category_grid"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="50dp" />
+
+                <TextView
+                    android:id="@+id/tv_no_product"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="32dp"
+                    android:text="@string/no_favorite_product"
+                    android:visibility="gone" />
             </LinearLayout>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

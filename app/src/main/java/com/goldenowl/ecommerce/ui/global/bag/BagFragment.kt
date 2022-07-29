@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.core.os.bundleOf
 import androidx.core.view.isEmpty
@@ -16,6 +15,7 @@ import com.goldenowl.ecommerce.databinding.FragmentBagBinding
 import com.goldenowl.ecommerce.models.data.ProductData
 import com.goldenowl.ecommerce.ui.auth.LoginSignupActivity
 import com.goldenowl.ecommerce.ui.global.BaseHomeFragment
+import com.goldenowl.ecommerce.utils.BaseLoadingStatus
 import com.goldenowl.ecommerce.utils.Constants
 import com.goldenowl.ecommerce.utils.Utils.hideKeyboard
 import com.goldenowl.ecommerce.viewmodels.BagProductListAdapter
@@ -53,18 +53,23 @@ class BagFragment : BaseHomeFragment<FragmentBagBinding>() {
             viewModel.reloadListProductData()
         }
         viewModel.allCart.observe(viewLifecycleOwner) {
-            viewModel.reloadListProductData()
-            setPrice()
+            if (it.isEmpty()) {
+                binding.tvNoProduct.visibility = View.VISIBLE
+                binding.layoutContent.visibility = View.GONE
+                binding.layoutCheckout.visibility = View.GONE
+
+            } else {
+                binding.tvNoProduct.visibility = View.GONE
+                binding.layoutContent.visibility = View.VISIBLE
+                binding.layoutCheckout.visibility = View.VISIBLE
+                viewModel.reloadListProductData()
+                setPrice()
+            }
         }
 
         viewModel.curBag.observe(viewLifecycleOwner) {
             binding.tvPromoCode.text = it?.promo?.id
             setPrice()
-        }
-
-
-        viewModel.toastMessage.observe(viewLifecycleOwner) {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
         }
 
         sortViewModel.searchTerm.observe(viewLifecycleOwner) {
@@ -114,6 +119,7 @@ class BagFragment : BaseHomeFragment<FragmentBagBinding>() {
 
     private fun checkOut() {
         val listCartProductData = adapterGrid.getBag()
+        viewModel.loadingStatus.value = BaseLoadingStatus.NONE
         findNavController().navigate(
             R.id.checkout_dest, bundleOf(
                 "listCartProductData" to listCartProductData

@@ -10,7 +10,6 @@ import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
-import android.os.Looper
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.TextPaint
@@ -25,11 +24,14 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.SCROLL_STATE_DRAGGING
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
+import com.goldenowl.ecommerce.R
 import com.goldenowl.ecommerce.ui.global.MainActivity
 import java.text.SimpleDateFormat
 import java.util.*
@@ -43,7 +45,6 @@ object Utils {
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(homeIntent)
     }
-
     fun getDateTime(time: Long?): String {
         if (time == null) {
             return ""
@@ -151,6 +152,11 @@ object Utils {
                 .listener(
                     glideListener(loadingLayout)
                 )
+                .apply(
+                    RequestOptions()
+                        .centerCrop()
+                        .error(R.drawable.img_broken)
+                )
                 .into(imageView)
         } else {
             loadingLayout.visibility = View.GONE
@@ -158,33 +164,45 @@ object Utils {
         }
     }
 
-    fun ViewPager2.autoScroll(interval: Long) {
+    fun <T> List<T>.prepareForTwoWayPaging(): List<T> {
+        val first = first()
+        val last = last()
+        return toMutableList().apply {
+            add(0, last)
+            add(first)
+        }
+    }
 
-        val handler = Handler(Looper.getMainLooper())
+    fun ViewPager2.autoScroll(handler: Handler, interval: Long) {
         var scrollPosition = 0
-
         val runnable = object : Runnable {
-
             override fun run() {
                 val count = adapter?.itemCount ?: 0
                 if (count == 0) {
-                    Log.w("autoScroll", "run: Empty list images")
                     return
                 }
-                setCurrentItem(scrollPosition++ % count, true)
-                handler.postDelayed(this, interval)
+                setCurrentItem((scrollPosition + 1) % count, true)
             }
         }
 
         registerOnPageChangeCallback(
 
             object : ViewPager2.OnPageChangeCallback() {
+                val count = adapter?.itemCount ?: 0
                 override fun onPageSelected(position: Int) {
-                    scrollPosition = position + 1
+                    super.onPageSelected(position)
+                    if (count < 2) return
+                    handler.removeMessages(0)
+                    scrollPosition = position
+                    when (position) {
+                        0 -> setCurrentItem(count - 2, false)
+                        count - 1 -> setCurrentItem(1, false)
+                    }
+                    handler.postDelayed(runnable, interval)
                 }
 
                 override fun onPageScrollStateChanged(state: Int) {
-                    // Not necessary
+                    if (state == SCROLL_STATE_DRAGGING) handler.removeMessages(0)
                 }
 
                 override fun onPageScrolled(
@@ -196,8 +214,6 @@ object Utils {
                 }
             }
         )
-
-        handler.post(runnable)
     }
 
     /*https://stackoverflow.com/questions/51141970/check-internet-connectivity-android-in-kotlin*/
@@ -205,15 +221,25 @@ object Utils {
     fun isNetworkAvailable(context: Context): Boolean {
         val connectivityManager =
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (connectivityManager != null) {
-            val capabilities =
-                connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-            if (capabilities != null) {
-                return true
-            }
+        val capabilities =
+            connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        if (capabilities != null) {
+            return true
         }
         return false
     }
 
-
+    fun getRandomString(): String {
+        val numset = "0123456789"
+        val charset = "ABCDEFGHIJKLMNOPQRSTUVWXTZ"
+        val NUM_LENGTH = 2
+        val CHAR_LENGTH = 10
+        val num = (1..NUM_LENGTH)
+            .map { numset.random() }
+            .joinToString("")
+        val char = (1..CHAR_LENGTH)
+            .map { charset.random() }
+            .joinToString("")
+        return num + char
+    }
 }

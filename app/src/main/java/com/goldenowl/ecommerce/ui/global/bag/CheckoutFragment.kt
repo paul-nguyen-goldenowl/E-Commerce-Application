@@ -37,9 +37,6 @@ class CheckoutFragment : BaseHomeFragment<FragmentCheckoutBinding>() {
 
     override fun setObservers() {
 
-        viewModel.toastMessage.observe(viewLifecycleOwner) {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-        }
         viewModel.listCard.observe(viewLifecycleOwner) {
             listCard = it
             if (it.isNotEmpty()) {
@@ -159,7 +156,7 @@ class CheckoutFragment : BaseHomeFragment<FragmentCheckoutBinding>() {
         binding.btnSubmitOrder.setOnClickListener {
             if (deliveryPrice == 0) {
                 showToast(getString(R.string.please_select_delivery))
-                binding.tvDelivery.requestFocus()
+                binding.scrollView.smoothScrollTo(0, binding.tvDelivery.top, 500)
                 return@setOnClickListener
             }
             val listCart = viewModel.allCart.value

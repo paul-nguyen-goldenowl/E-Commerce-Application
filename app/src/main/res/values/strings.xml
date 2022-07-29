@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">[Paul] ECommerce Shopping App</string>
+    <string name="app_name">Shop Paul: Fashion Store</string>
     <string name="home">Home</string>
     <string name="bag">Bag</string>
     <string name="favorites">Favorites</string>
@@ -249,6 +249,14 @@
     </plurals>
     <string name="no_more_products">No more products to show</string>
     <string name="all_product">All products</string>
+    <string name="no_favorite_product">No favorite products</string>
+    <string name="no_cart_product">Empty bag</string>
+    <string name="invalid_age">Invalid age</string>
+    <string name="no_internet">No Internet</string>
+    <string name="no_connection">No connection!</string>
+    <string name="pls_check_internet">Please check your internet</string>
+    <string name="go_back">Go back</string>
+    <string name="retry">Retry?</string>
 
     <plurals name="num_promo">
         <item quantity="one">You have 1 promocode</item>

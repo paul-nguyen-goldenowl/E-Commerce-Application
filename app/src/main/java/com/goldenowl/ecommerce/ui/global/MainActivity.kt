@@ -93,8 +93,5 @@ class MainActivity : AppCompatActivity() {
         return findNavController(R.id.nav_host_fragment).navigateUp(appBarConfiguration)
     }
 
-    fun setBottomNavBarEnabled(enabled: Boolean) {
-        binding.bottomNavView?.isEnabled = enabled
-    }
 }
 

@@ -48,6 +48,6 @@ class LaunchActivity : AppCompatActivity() {
 
 
     companion object {
-        private const val TIME_OUT: Long = 100
+        private const val TIME_OUT: Long = 1000
     }
 }

@@ -42,12 +42,12 @@ jobs:
       - name: Execute Gradle build
         run: ./gradlew assembleRelease
     
-      - run: git log  --pretty=oneline | tail -n 10 >> log.txt
+      - run: git log  --pretty=oneline | head -n 10 >> log.txt
 
       - name: upload artifact to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
-          appId: 1:174656673319:android:23f81df8e8d7885646e002
+          appId: 1:174656673319:android:8d3f5c6f67515b9c46e002
           token: ${{secrets.FIREBASE_TOKEN}}
           groups: go
           file: app/build/outputs/apk/release/app-release.apk

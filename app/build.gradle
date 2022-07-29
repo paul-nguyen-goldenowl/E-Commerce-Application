@@ -19,7 +19,7 @@ android {
     compileSdk 32
 
     defaultConfig {
-        applicationId "com.goldenowl.ecommerce"
+        applicationId "com.goldenowl.paul.ecommerce"
         minSdk 21
         targetSdk 32
         versionCode rootProject.gitCommitCount
@@ -43,6 +43,7 @@ android {
 
     buildTypes {
         release {
+            debuggable true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
@@ -130,4 +131,7 @@ dependencies {
     // Crashlytics and Analytics libraries
     implementation 'com.google.firebase:firebase-crashlytics-ktx'
     implementation 'com.google.firebase:firebase-analytics-ktx'
+
+    // animation
+    implementation 'com.airbnb.android:lottie:5.2.0'
 }

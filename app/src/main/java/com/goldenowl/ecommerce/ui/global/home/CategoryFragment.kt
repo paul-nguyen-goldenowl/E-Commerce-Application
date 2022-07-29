@@ -26,7 +26,6 @@ import com.goldenowl.ecommerce.utils.SortType
 import com.goldenowl.ecommerce.utils.Utils.hideKeyboard
 import com.goldenowl.ecommerce.viewmodels.SortFilterViewModel
 import kotlinx.coroutines.*
-import java.util.*
 
 class CategoryFragment : BaseHomeFragment<FragmentCategoryBinding>() {
 
@@ -64,6 +63,13 @@ class CategoryFragment : BaseHomeFragment<FragmentCategoryBinding>() {
             categoryViewModel.loadListProductData(it)
         }
 
+        sortViewModel.filterByPrice.observe(viewLifecycleOwner) {
+            filterPrice = it
+            binding.topAppBar.tvFilter.text = if (filterPrice != null) getString(R.string.filter_by_price) else
+                getString(R.string.filters)
+            refreshList()
+        }
+
         sortViewModel.sortType.observe(viewLifecycleOwner) {
             sortType = it
             binding.topAppBar.tvSort.text = getString(Constants.sortMap[it] ?: R.string.none)
@@ -79,9 +85,6 @@ class CategoryFragment : BaseHomeFragment<FragmentCategoryBinding>() {
             refreshList()
         }
 
-        viewModel.toastMessage.observe(viewLifecycleOwner) {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-        }
         categoryViewModel.toastMessage.observe(viewLifecycleOwner) {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
         }
@@ -155,13 +158,6 @@ class CategoryFragment : BaseHomeFragment<FragmentCategoryBinding>() {
 
     private fun refreshList() {
         var filteredList = listProductData.toList()
-
-        if (filterType == Constants.KEY_SALE)
-            filteredList = filteredList.filter { it.product.salePercent != null }
-        else if (filterType == Constants.KEY_NEW)
-            filteredList = filteredList.filter { it.product.createdDate > Date(0) }
-        else if (filterType != null)
-            filteredList = filteredList.filter { it.product.categoryName == filterType }
 
         filteredList = when (sortType) {
             SortType.REVIEW -> filteredList.sortedByDescending { it.product.reviewStars }
@@ -247,7 +243,7 @@ class CategoryFragment : BaseHomeFragment<FragmentCategoryBinding>() {
             object : AppBarCategoryListAdapter.IClickListenerAppbar {
                 override fun onClick(position: Int) {
                     findNavController().navigate(
-                        R.id.category_dest,
+                        R.id.action_go_other_category,
                         bundleOf(Constants.KEY_CATEGORY to list[position])
                     )
                 }
@@ -256,7 +252,11 @@ class CategoryFragment : BaseHomeFragment<FragmentCategoryBinding>() {
 
         if (filterType == null) binding.topAppBar.collapsingToolbar.title = getString(R.string.all_product)
         else {
-            binding.topAppBar.collapsingToolbar.title = filterType
+            binding.topAppBar.collapsingToolbar.title = when(filterType){
+                Constants.KEY_SALE -> getString(R.string.sales)
+                Constants.KEY_NEW -> getString(R.string.news)
+                else -> filterType
+            }
             binding.tvProductForQuery.visibility = View.GONE
             listCategory.indexOf(filterType).let { index ->
                 if (index > -1) {

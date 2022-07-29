@@ -1,10 +1,9 @@
 package com.goldenowl.ecommerce.ui.global
 
 import android.content.Intent
-import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -19,7 +18,10 @@ import com.goldenowl.ecommerce.ui.global.bottomsheet.BottomSheetEnterPromo
 import com.goldenowl.ecommerce.ui.global.bottomsheet.BottomSheetInsertCart
 import com.goldenowl.ecommerce.ui.global.bottomsheet.BottomSheetInsertFavorite
 import com.goldenowl.ecommerce.utils.BaseLoadingStatus
+import com.goldenowl.ecommerce.utils.ConnectionLiveData
+import com.goldenowl.ecommerce.utils.Utils
 import com.goldenowl.ecommerce.viewmodels.ShopViewModel
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,6 +32,7 @@ abstract class BaseHomeFragment<VBinding : ViewBinding> : BaseFragment<VBinding>
 
     protected val viewModel: ShopViewModel by activityViewModels()
     protected val uiScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    protected lateinit var connectionLiveData: ConnectionLiveData
 
     override fun onClickFavorite(product: Product, favorite: Favorite?) {
         if (!viewModel.isLoggedIn()) {
@@ -51,6 +54,10 @@ abstract class BaseHomeFragment<VBinding : ViewBinding> : BaseFragment<VBinding>
     }
 
     override fun onClickCart(product: Product, cart: Cart?) {
+        if (!viewModel.isLoggedIn()) {
+            toggleDialogLogIn()
+            return
+        }
         if (cart == null) {
             toggleBottomSheetInsertCart(product, null)
         } else {
@@ -91,14 +98,8 @@ abstract class BaseHomeFragment<VBinding : ViewBinding> : BaseFragment<VBinding>
     }
 
     protected fun toggleDialogLogIn() {
-        AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.not_log_in_yet))
-            .setMessage(getString(R.string.log_in_now))
-            .setNegativeButton(R.string.cancel) { dialog, _ ->
-                dialog.dismiss()
-            }
-            .setPositiveButton(R.string.ok) { dialog, _ ->
-                dialog.dismiss()
+        Snackbar.make(binding.root, R.string.log_in_to_continue, Snackbar.LENGTH_LONG)
+            .setAction(R.string.login) {
                 startActivity(Intent(requireContext(), LoginSignupActivity::class.java))
             }
             .show()
@@ -110,20 +111,22 @@ abstract class BaseHomeFragment<VBinding : ViewBinding> : BaseFragment<VBinding>
         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewModel.toastMessage.observe(viewLifecycleOwner) {
-            showToast(it)
-        }
-    }
-
     companion object {
         val TAG = "BaseHomeFragment"
     }
 
     override fun init() {
         super.init()
+        connectionLiveData = ConnectionLiveData(requireContext())
         viewModel.loadingStatus.value = BaseLoadingStatus.NONE
+        viewModel.setNetWorkAvailable(Utils.isNetworkAvailable(requireContext()))
+    }
+
+    override fun setObservers() {
+        connectionLiveData.observe(this) {
+            viewModel.setNetWorkAvailable(it)
+            Log.d(TAG, "NetWorkAvailable=$it")
+        }
     }
 }
 

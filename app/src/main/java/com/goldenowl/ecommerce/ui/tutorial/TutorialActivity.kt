@@ -1,14 +1,16 @@
 package com.goldenowl.ecommerce.ui.tutorial
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
+import com.goldenowl.ecommerce.R
 import com.goldenowl.ecommerce.adapter.TutorialPagerAdapter
 import com.goldenowl.ecommerce.databinding.ActivityTutorialBinding
 import com.goldenowl.ecommerce.models.data.SettingsManager
+import com.goldenowl.ecommerce.utils.Utils.isNetworkAvailable
 import com.goldenowl.ecommerce.utils.Utils.launchHome
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
 
 class TutorialActivity : AppCompatActivity() {
@@ -71,9 +73,15 @@ class TutorialActivity : AppCompatActivity() {
 
     private fun skipTutorial() {
         setFirstLaunch(false)
-
-        launchHome(this)
-        finish()
+        if (isNetworkAvailable(this)) {
+            launchHome(this)
+            finish()
+        } else
+            Snackbar.make(binding.root, R.string.no_internet, Snackbar.LENGTH_LONG)
+                .setAction(R.string.retry)
+                {
+                    skipTutorial()
+                }
+                .show()
     }
-
 }

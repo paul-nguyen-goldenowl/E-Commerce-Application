@@ -7,7 +7,7 @@
     <include
         android:id="@+id/layout_loading"
         layout="@layout/layout_loading"
-        android:visibility="invisible" />
+        android:visibility="visible" />
 
     <ImageView
         android:id="@+id/product_img"
@@ -15,7 +15,7 @@
         android:layout_height="match_parent"
         android:contentDescription="@string/trending"
         android:scaleType="centerCrop"
-        android:src="@drawable/carousel1" />
+        android:src="@drawable/img_broken" />
 
     <TextView
         android:id="@+id/tv_title"

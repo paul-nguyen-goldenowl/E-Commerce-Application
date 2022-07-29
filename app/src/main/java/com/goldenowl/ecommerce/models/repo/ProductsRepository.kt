@@ -3,6 +3,7 @@ package com.goldenowl.ecommerce.models.repo
 import android.util.Log
 import com.goldenowl.ecommerce.models.data.*
 import com.goldenowl.ecommerce.utils.MyResult
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.async
 import kotlinx.coroutines.supervisorScope
 
@@ -19,13 +20,7 @@ class ProductsRepository(
 
 
     suspend fun getAllProducts(): List<Product> {
-        return if (networkAvailable) {
-            val products = remoteProductDataSource.getAllProducts()
-            localProductDataSource.insertMultipleProduct(products)
-            products
-        } else {
-            localProductDataSource.getAllProducts()
-        }
+        return remoteProductDataSource.getAllProducts()
     }
 
     suspend fun insertFavorite(favorite: Favorite): MyResult<Boolean> {
@@ -359,8 +354,15 @@ class ProductsRepository(
                     if (allCart.isNotEmpty())
                         localProductDataSource.insertMultipleCart(allCart)
                 }
+                val orderRes = async {
+                    val allOrder = remoteProductDataSource.getAllOrder(userId)
+                    if (allOrder.isNotEmpty())
+                        localProductDataSource.insertMultipleOrder(allOrder)
+                }
                 val listFavorite = favoriteRes.await()
                 val listCart = cartRes.await()
+                val listOrder = orderRes.await()
+                Log.d(TAG, "restoreUserData: listFavorite=\n$listFavorite \nlistCart=$listCart \nlistOrder=$listOrder")
                 MyResult.Success(true)
             } catch (e: Exception) {
                 MyResult.Error(e)
@@ -400,6 +402,18 @@ class ProductsRepository(
         } catch (e: Exception) {
             MyResult.Error(e)
         }
+    }
+
+    suspend fun getListAppbarImg(): MyResult<List<Pair<String, String>>> {
+        return try {
+            MyResult.Success(remoteProductDataSource.getListAppbarImg())
+        } catch (e: Exception) {
+            MyResult.Error(e)
+        }
+    }
+
+    fun setNetWorkAvailable(network: Boolean) {
+        remoteProductDataSource.source = if (network) Source.DEFAULT else Source.CACHE
     }
 
     companion object {

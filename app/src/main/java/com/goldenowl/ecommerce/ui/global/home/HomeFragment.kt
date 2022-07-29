@@ -1,7 +1,8 @@
 package com.goldenowl.ecommerce.ui.global.home
 
+import android.os.Handler
+import android.os.Looper
 import android.view.View
-import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,16 +17,21 @@ import com.goldenowl.ecommerce.utils.BaseLoadingStatus
 import com.goldenowl.ecommerce.utils.Constants
 import com.goldenowl.ecommerce.utils.Utils.autoScroll
 import com.goldenowl.ecommerce.utils.Utils.getColor
+import com.goldenowl.ecommerce.utils.Utils.prepareForTwoWayPaging
 
 class HomeFragment : BaseHomeFragment<FragmentHomeBinding>() {
     val TAG: String = "HomeFragment"
 
     private lateinit var salesListAdapter: HomeProductListAdapter
     private lateinit var newsListAdapter: HomeProductListAdapter
+    private lateinit var viewPagerAdapter: HomeViewPagerAdapter
 
     private var listProductData: List<ProductData> = emptyList()
+    private val handler = Handler(Looper.getMainLooper())
+    private var mListAppbarImg: List<Pair<String, String>> = emptyList()
 
     override fun setObservers() {
+        super.setObservers()
         viewModel.dataReady.observe(viewLifecycleOwner) {
             if (it == BaseLoadingStatus.LOADING) {
                 binding.layoutLoading.loadingFrameLayout.visibility = View.VISIBLE
@@ -44,9 +50,13 @@ class HomeFragment : BaseHomeFragment<FragmentHomeBinding>() {
             viewModel.allFavorite.observe(viewLifecycleOwner) {
                 viewModel.reloadListProductData()
             }
-            viewModel.toastMessage.observe(viewLifecycleOwner) {
-                if (!it.isNullOrBlank())
-                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+
+            viewModel.listAppbarImg.observe(viewLifecycleOwner) { list ->
+                mListAppbarImg = list
+                if (list.isEmpty())
+                    return@observe
+                viewPagerAdapter.setData(list.prepareForTwoWayPaging())
+                binding.topAppBar.viewPager.autoScroll(handler, Constants.AUTO_SCROLL)
             }
         }
     }
@@ -75,7 +85,6 @@ class HomeFragment : BaseHomeFragment<FragmentHomeBinding>() {
         }
     }
 
-
     override fun getViewBinding(): FragmentHomeBinding {
         return FragmentHomeBinding.inflate(layoutInflater)
     }
@@ -87,13 +96,19 @@ class HomeFragment : BaseHomeFragment<FragmentHomeBinding>() {
             setExpandedTitleColor(getColor(context, R.color.white) ?: 0xFFFFFF)
         }
 
-        // todo fetch list image and title
-        val imgs = listOf(
-            R.drawable.carousel1, R.drawable.carousel2, R.drawable.carousel3, R.drawable.carousel4
-        )
-        val titles = listOf("Street clothes", "Sleep clothes", "Sport clothes", "Inform clothes")
-        binding.topAppBar.viewPager.adapter = HomeViewPagerAdapter(imgs, titles)
-        binding.topAppBar.viewPager.autoScroll(3500)
+        viewPagerAdapter = HomeViewPagerAdapter { title ->
+            findNavController().navigate(R.id.category_dest, bundleOf(Constants.KEY_CATEGORY to title))
+        }
+        binding.topAppBar.viewPager.adapter = viewPagerAdapter
     }
 
+    override fun onPause() {
+        super.onPause()
+        handler.removeMessages(0)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeMessages(0)
+    }
 }

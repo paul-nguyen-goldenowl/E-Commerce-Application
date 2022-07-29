@@ -4,6 +4,8 @@ import com.goldenowl.ecommerce.R
 import com.goldenowl.ecommerce.models.data.Delivery
 
 object Constants {
+    const val MIN_AGE = 365
+    const val AUTO_SCROLL: Long = 3500
     const val LOAD_MORE_QUANTITY: Long = 2
     const val ERR_NOT_LOGIN = "[Firestore] User not found!"
 
@@ -26,6 +28,7 @@ object Constants {
     const val PRODUCTS_COLLECTION = "products"
     const val USER_ORDER_COLLECTION = "user_orders"
     const val REVIEW_COLLECTION = "reviews"
+    const val APP_DATA_COLLECTION = "appdata"
     const val PROMOTIONS_COLLECTION = "promotions"
     const val GRID_VIEW = 1
     const val LIST_VIEW = 0

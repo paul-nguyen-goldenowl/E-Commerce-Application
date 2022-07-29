@@ -2,7 +2,6 @@ package com.goldenowl.ecommerce.ui.global.bottomsheet
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -99,7 +98,11 @@ class BottomSheetInsertCard(private val viewModel: ShopViewModel) :
                 }
                 dismiss()
             } else {
-                viewModel.toastMessage.value = getString(R.string.invalid_info)
+                Toast.makeText(
+                    requireContext(),
+                    requireContext().getString(R.string.invalid_info),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
         binding.checkDefault.setOnClickListener {

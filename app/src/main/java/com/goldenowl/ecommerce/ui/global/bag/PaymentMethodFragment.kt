@@ -1,6 +1,5 @@
 package com.goldenowl.ecommerce.ui.global.bag
 
-import android.util.Log
 import android.view.View
 import androidx.navigation.fragment.findNavController
 import com.goldenowl.ecommerce.R
@@ -20,9 +19,6 @@ class PaymentMethodFragment : BaseHomeFragment<FragmentPaymentMethodBinding>(), 
     }
 
     override fun setObservers() {
-        viewModel.toastMessage.observe(viewLifecycleOwner) {
-            showToast(it)
-        }
 
         viewModel.listCard.observe(viewLifecycleOwner) {
             listCard = it
